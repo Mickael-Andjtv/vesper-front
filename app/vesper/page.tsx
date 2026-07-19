@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { EmoEyes, type Emotion } from "@/features/vesperFace";
+import { EmoEyes } from "@/features/vesperFace/components";
+import { Emotion } from "@/features/vesperFace/types/emotion.types";
 
 const EMOTIONS: { key: Emotion; label: string }[] = [
   { key: "normal", label: "Normal" },

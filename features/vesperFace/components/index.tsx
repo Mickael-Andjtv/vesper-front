@@ -1,13 +1,10 @@
 "use client";
 
-import { motion, useAnimationControls } from "motion/react";
-import { useEffect } from "react";
+import { motion, useAnimation } from "motion/react";
+import { useEffect, useState } from "react";
+import { Emotion } from "../types/emotion.types";
+import { useBlink } from "../hooks/useBlink";
 
-export type Emotion = "normal" | "happy" | "sad" | "sarcastic" | "laugh";
-
-/**
- * EMO-robot style eyes with emotion states.
- */
 export function EmoEyes({
   size = 130,
   emotion = "normal",
@@ -15,32 +12,11 @@ export function EmoEyes({
   size?: number;
   emotion?: Emotion;
 }) {
-  const left = useAnimationControls();
-  const right = useAnimationControls();
-  const both = useAnimationControls();
-
-  // Blink loop — quick & lively, skipped for droopy sad
-  useEffect(() => {
-    // if (emotion === "sad") return;
-    let cancelled = false;
-    const loop = async () => {
-      while (!cancelled) {
-        await new Promise((r) => setTimeout(r, 1200 + Math.random() * 1600));
-        if (cancelled) return;
-        await both.start({ scaleY: 0.08, transition: { duration: 0.06 } });
-        await both.start({ scaleY: 1, transition: { duration: 0.08 } });
-        if (Math.random() < 0.3) {
-          await both.start({ scaleY: 0.08, transition: { duration: 0.06 } });
-          await both.start({ scaleY: 1, transition: { duration: 0.08 } });
-        }
-      }
-    };
-    loop();
-    return () => {
-      cancelled = true;
-      both.stop();
-    };
-  }, [both, emotion]);
+  const left = useAnimation();
+  const right = useAnimation();
+  const both = useAnimation();
+  const [cancelled, setCancelled] = useState(false);
+  useBlink(cancelled, () => setCancelled(true), both, emotion);
 
   // Emotion-driven pose + micro movements
   useEffect(() => {
@@ -57,19 +33,21 @@ export function EmoEyes({
     ) => {
       const loop = async () => {
         while (!cancelled) {
-          await new Promise((r) => setTimeout(r, minDelay + Math.random() * randDelay));
+          await new Promise((r) =>
+            setTimeout(r, minDelay + Math.random() * randDelay),
+          );
           if (cancelled) return;
           const p = positions[Math.floor(Math.random() * positions.length)];
           left.start({
             ...basePose,
             x: p.x,
-            y: (basePose.y as number ?? 0) + p.y,
+            y: ((basePose.y as number) ?? 0) + p.y,
             transition: { type: "spring", stiffness: 380, damping: 18 },
           });
           right.start({
             ...basePose,
             x: p.x,
-            y: (basePose.y as number ?? 0) + p.y,
+            y: ((basePose.y as number) ?? 0) + p.y,
             transition: { type: "spring", stiffness: 380, damping: 18 },
           });
         }
@@ -133,8 +111,20 @@ export function EmoEyes({
         scaleY: 0.75,
         borderRadius: "30% 30% 50% 50%",
       };
-      left.start({ ...pose, x: 0, y: 10, rotate: -18, transition: { duration: 0.3 } });
-      right.start({ ...pose, x: 0, y: 10, rotate: 18, transition: { duration: 0.3 } });
+      left.start({
+        ...pose,
+        x: 0,
+        y: 10,
+        rotate: -18,
+        transition: { duration: 0.3 },
+      });
+      right.start({
+        ...pose,
+        x: 0,
+        y: 10,
+        rotate: 18,
+        transition: { duration: 0.3 },
+      });
 
       // Slow, small, drifting look — mostly down
       const positions = [
@@ -224,8 +214,22 @@ export function EmoEyes({
     }
 
     // normal: reset + quick lively look-around
-    left.start({ scaleY: 1, rotate: 0, borderRadius: "28%", x: 0, y: 0, transition: { duration: 0.18 } });
-    right.start({ scaleY: 1, rotate: 0, borderRadius: "28%", x: 0, y: 0, transition: { duration: 0.18 } });
+    left.start({
+      scaleY: 1,
+      rotate: 0,
+      borderRadius: "28%",
+      x: 0,
+      y: 0,
+      transition: { duration: 0.18 },
+    });
+    right.start({
+      scaleY: 1,
+      rotate: 0,
+      borderRadius: "28%",
+      x: 0,
+      y: 0,
+      transition: { duration: 0.18 },
+    });
     runLookAround(
       [
         { x: 0, y: 0 },
