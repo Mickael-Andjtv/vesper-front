@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { EmoEyes } from "@/features/vesperFace/components";
 import { Emotion } from "@/features/vesperFace/types/emotion.types";
 import InputText from "@/features/inputText/components";
+import { QueryResponse } from "@/src/api";
 
 const EMOTIONS: { key: Emotion; label: string }[] = [
   { key: "normal", label: "Normal" },
@@ -15,30 +16,45 @@ const EMOTIONS: { key: Emotion; label: string }[] = [
 
 export default function Home() {
   const [emotion, setEmotion] = useState<Emotion>("normal");
+  const [data, setData] = useState<QueryResponse>();
+
+  useEffect(() => {
+    if (!data) return;
+    console.log(data);
+    
+    const newEmotion = data.emotion || "normal";
+    if (emotion !== newEmotion) {
+      switch (data.emotion) {
+        case "neutral":
+          setEmotion("normal");
+          break;
+        case "happy":
+          setEmotion("happy");
+          break;
+        case "sad":
+          setEmotion("sad");
+          break;
+        case "thinking":
+          setEmotion("normal");
+          break;
+        case "sarcastic":
+          setEmotion("laugh");
+          break;
+        case "surprised":
+          setEmotion("sarcastic");
+          break;
+
+        default:
+          setEmotion("normal");
+          break;
+      }
+    }
+  }, [data]);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-12 bg-neutral-950 p-6">
       <EmoEyes size={130} emotion={emotion} />
-
-      <div className="flex flex-wrap items-center justify-center gap-3">
-        {EMOTIONS.map((e) => {
-          const active = e.key === emotion;
-          return (
-            <button
-              key={e.key}
-              onClick={() => setEmotion(e.key)}
-              className={`rounded-full px-5 py-2 text-sm font-medium transition-all ${
-                active
-                  ? "bg-[#00BBFF] text-neutral-950 shadow-[0_0_20px_rgba(0,187,255,0.6)]"
-                  : "bg-neutral-800 text-neutral-200 hover:bg-neutral-700"
-              }`}
-            >
-              {e.label}
-            </button>
-          );
-        })}
-      </div>
-      <InputText />
+      <InputText setData={setData} />
     </div>
   );
 }
