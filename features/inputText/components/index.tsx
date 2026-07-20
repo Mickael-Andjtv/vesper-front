@@ -32,7 +32,6 @@ const InputText = ({ setData }: props) => {
       setData({ ...data });
       if (data.action === "play_music") {
         setMusic(true);
-        // ✅ Construire l'URL DIRECTE du backend
         const musicQuery = data.action_data || prompt;
         const streamUrl = `http://localhost:8000/music/stream?query=${encodeURIComponent(musicQuery)}`;
         setAudioUrl(streamUrl);
@@ -41,19 +40,16 @@ const InputText = ({ setData }: props) => {
     }
   }, [isSuccess, data, prompt]);
 
-  // ✅ Utiliser l'URL directement dans l'élément audio
   useEffect(() => {
     if (audioUrl && audioRef.current) {
       console.log("Chargement de l'audio depuis:", audioUrl);
       audioRef.current.src = audioUrl;
       audioRef.current.load();
       
-      // Tentative de lecture automatique
       const playPromise = audioRef.current.play();
       if (playPromise !== undefined) {
         playPromise.catch(err => {
           console.log("Auto-play bloqué par le navigateur:", err);
-          // L'utilisateur devra cliquer sur le bouton play
         });
       }
     }
