@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
 import "../styles/globals.css";
+import { ReactQueryProvider } from "@/providers/ReactQueryProvider";
 
 export const metadata: Metadata = {
-  title: "Lovable App",
+  title: "Vesper",
   description: "Lovable Generated Project",
   authors: [{ name: "Lovable" }],
   icons: {
     icon: "/favicon.ico",
   },
   openGraph: {
-    title: "Lovable App",
+    title: "Vesper",
     description: "Lovable Generated Project",
     type: "website",
   },
@@ -26,7 +27,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <ReactQueryProvider>
+        <body>{children}</body>
+      </ReactQueryProvider>
     </html>
   );
 }
