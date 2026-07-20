@@ -7,7 +7,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "generate:api": "openapi --input http://127.0.0.1:8000/openapi.json --output ./src/api"
   },
   "dependencies": {
     "motion": "^12.42.2",
@@ -24,6 +25,8 @@
     "eslint": "^9.32.0",
     "eslint-config-next": "^15.4.0",
     "tailwindcss": "^4.2.1",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "@openapitools/openapi-generator-cli": "^2.32.0",
+    "openapi-typescript-codegen": "^0.29.0"
   }
 }

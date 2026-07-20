@@ -1,3 +1,4 @@
 allowBuilds:
+  '@openapitools/openapi-generator-cli': true
   sharp: true
   unrs-resolver: false

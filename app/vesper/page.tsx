@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { EmoEyes } from "@/features/vesperFace/components";
 import { Emotion } from "@/features/vesperFace/types/emotion.types";
+import InputText from "@/features/inputText/components";
 
 const EMOTIONS: { key: Emotion; label: string }[] = [
   { key: "normal", label: "Normal" },
@@ -37,6 +38,7 @@ export default function Home() {
           );
         })}
       </div>
+      <InputText />
     </div>
   );
 }
