@@ -42,9 +42,9 @@ export function useVoiceAssistant() {
   const [responseText, setResponseText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const requestRef = useRef<AbortController | null>(null);
-  const shouldSubmitRef = useRef(false);
   const transcriptRef = useRef("");
   const musicRef = useRef<HTMLAudioElement | null>(null);
 
@@ -97,17 +97,19 @@ export function useVoiceAssistant() {
     }
   }, [stopMusic]);
 
-  const submitTranscript = useCallback(async (transcript: string) => {
-    if (!transcript.trim()) {
+  const submitTranscript = useCallback(async (text: string) => {
+    const cleanedText = text.trim();
+    if (!cleanedText) {
       setError("Je n'ai pas entendu votre voix. Réessayez.");
       setStatus("error");
       return;
     }
+    setError(null);
     setStatus("processing");
     const controller = new AbortController();
     requestRef.current = controller;
     try {
-      const data = await generateAssistantResponse(transcript.trim(), controller.signal);
+      const data = await generateAssistantResponse(cleanedText, controller.signal);
       setEmotion(resolveEmotion(data.emotion));
       setResponseText(data.reply);
       if (data.action === "play_music") await startMusic(data.action_data);
@@ -115,7 +117,7 @@ export function useVoiceAssistant() {
       else setStatus("idle");
     } catch (caught) {
       if ((caught as DOMException).name !== "AbortError") {
-        setError(caught instanceof Error ? caught.message : "Impossible de contacter le serveur. Vérifiez votre connexion.");
+        setError(caught instanceof Error ? caught.message : "Impossible de contacter le serveur.");
         setStatus("error");
       }
     } finally {
@@ -124,59 +126,59 @@ export function useVoiceAssistant() {
   }, [speak, startMusic]);
 
   const stopListening = useCallback(() => {
-    if (status === "listening") {
-      shouldSubmitRef.current = true;
-      recognitionRef.current?.stop();
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
     }
-  }, [status]);
+  }, []);
 
   const startListening = useCallback(() => {
-    if (status !== "idle" && status !== "error") return;
     const Recognition = window.SpeechRecognition ?? window.webkitSpeechRecognition;
     if (!Recognition) {
       setError("La reconnaissance vocale n'est pas prise en charge par ce navigateur.");
       setStatus("error");
       return;
     }
+
     setError(null);
+    setResponseText("");
     transcriptRef.current = "";
-    shouldSubmitRef.current = false;
+
     const recognition = new Recognition();
     recognition.lang = "fr-FR";
     recognition.continuous = true;
     recognition.interimResults = true;
+
     recognition.onresult = (event) => {
-      transcriptRef.current = Array.from(event.results)
-        .map((result) => result[0]?.transcript ?? "")
-        .join(" ");
+      let accumulated = "";
+      for (let i = 0; i < event.results.length; i++) {
+        accumulated += event.results[i][0]?.transcript ?? "";
+      }
+      transcriptRef.current = accumulated;
     };
+
     recognition.onerror = (event) => {
-      const messages: Record<string, string> = {
-        "not-allowed": "L'accès au microphone est nécessaire pour parler avec Vesper.",
-        "service-not-allowed": "L'accès au microphone est nécessaire pour parler avec Vesper.",
-        "audio-capture": "Aucun microphone disponible.",
-      };
-      setError(messages[event.error] ?? "Une erreur est survenue pendant l'écoute.");
-      setStatus("error");
-    };
-    recognition.onend = () => {
-      recognitionRef.current = null;
-      if (shouldSubmitRef.current) {
-        shouldSubmitRef.current = false;
-        void submitTranscript(transcriptRef.current);
-      } else {
-        setStatus((current) => (current === "error" ? "error" : "idle"));
+      if (event.error !== "no-speech") {
+        setError("Erreur microphone : " + event.error);
+        setStatus("error");
       }
     };
+
+    recognition.onend = () => {
+      recognitionRef.current = null;
+      // On soumet la transcription enregistrée dès que l'écoute s'arrête
+      void submitTranscript(transcriptRef.current);
+    };
+
     recognitionRef.current = recognition;
     setStatus("listening");
+
     try {
       recognition.start();
     } catch {
       setError("Impossible de démarrer le microphone.");
       setStatus("error");
     }
-  }, [status, submitTranscript]);
+  }, [submitTranscript]);
 
   useEffect(() => () => {
     recognitionRef.current?.abort();

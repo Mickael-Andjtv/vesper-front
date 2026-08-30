@@ -13,13 +13,13 @@ export async function generateAssistantResponse(
   prompt: string,
   signal: AbortSignal,
 ): Promise<AssistantResponse> {
+  alert(apiUrl)
   const response = await fetch(`${apiUrl}/generate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ prompt }),
     signal,
   });
-
   if (!response.ok) {
     throw new AssistantApiError("Le serveur de Vesper ne répond pas actuellement.", response.status);
   }
