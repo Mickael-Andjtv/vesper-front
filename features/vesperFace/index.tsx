@@ -2,8 +2,9 @@
 
 import { motion, useAnimationControls } from "motion/react";
 import { useEffect } from "react";
+import type { Emotion } from "./emotions";
 
-export type Emotion = "normal" | "happy" | "sad" | "sarcastic" | "laugh";
+export type { Emotion } from "./emotions";
 
 /**
  * EMO-robot style eyes with emotion states.
@@ -223,6 +224,7 @@ export function EmoEyes({
       };
     }
 
+    // The backend-only visual states deliberately retain the neutral animation.
     // normal: reset + quick lively look-around
     left.start({ scaleY: 1, rotate: 0, borderRadius: "28%", x: 0, y: 0, transition: { duration: 0.18 } });
     right.start({ scaleY: 1, rotate: 0, borderRadius: "28%", x: 0, y: 0, transition: { duration: 0.18 } });
